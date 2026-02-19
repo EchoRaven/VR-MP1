@@ -7,6 +7,12 @@ public class SimpleMovement : MonoBehaviour
     [SerializeField] private float moveSpeed = 3f;
     [SerializeField] private float lookSpeed = 2f;
 
+    [Header("Movement Bounds")]
+    [SerializeField] private float minX = -9f;
+    [SerializeField] private float maxX = 9f;
+    [SerializeField] private float minZ = -9f;
+    [SerializeField] private float maxZ = 9f;
+
     [Header("References")]
     [SerializeField] private Transform cameraTransform;
 
@@ -67,9 +73,17 @@ public class SimpleMovement : MonoBehaviour
         right.Normalize();
 
         Vector3 movement = (forward * moveInput.y + right * moveInput.x) * moveSpeed * Time.deltaTime;
-        transform.position += movement;
+        
+        // Calculate new position
+        Vector3 newPosition = transform.position + movement;
+        
+        // Clamp position within bounds
+        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+        newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
+        
+        transform.position = newPosition;
 
-        // Up and Down
+        // Up and Down (Q/E keys)
         if (keyboard.eKey.isPressed) transform.position += Vector3.up * moveSpeed * Time.deltaTime;
         if (keyboard.qKey.isPressed) transform.position += Vector3.down * moveSpeed * Time.deltaTime;
     }

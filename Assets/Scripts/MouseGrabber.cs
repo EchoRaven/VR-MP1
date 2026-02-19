@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-
+using UnityEngine.UI;
 
 public class MouseGrabber : MonoBehaviour
 {
@@ -32,6 +32,13 @@ public class MouseGrabber : MonoBehaviour
 
         if (mouse.leftButton.wasPressedThisFrame)
         {
+            // First try to click UI/buttons
+            if (TryClickButton())
+            {
+                return;
+            }
+
+            // Then try grab/release objects
             if (isHolding)
             {
                 ReleaseObject();
@@ -58,6 +65,42 @@ public class MouseGrabber : MonoBehaviour
         {
             holdDistance = Mathf.Clamp(holdDistance + scroll * 0.001f, 0.5f, 10f);
         }
+    }
+
+    private bool TryClickButton()
+    {
+        Ray ray = mainCamera.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, grabDistance))
+        {
+            // Check for ClickableButton script
+            ClickableButton clickable = hit.collider.GetComponent<ClickableButton>();
+            if (clickable == null)
+            {
+                clickable = hit.collider.GetComponentInParent<ClickableButton>();
+            }
+            if (clickable != null)
+            {
+                clickable.Click();
+                return true;
+            }
+
+            // Check for UI Button
+            Button button = hit.collider.GetComponent<Button>();
+            if (button == null)
+            {
+                button = hit.collider.GetComponentInParent<Button>();
+            }
+            if (button != null)
+            {
+                button.onClick.Invoke();
+                Debug.Log($"Clicked UI button: {button.name}");
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void TryGrabObject()
